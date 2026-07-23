@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jüri Değerlendirme · Humanising Energy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0D12;
+    --bg-2:#0D1219;
+    --surface:#131A22;
+    --surface-2:#1A222C;
+    --border:rgba(255,255,255,0.08);
+    --border-strong:rgba(255,255,255,0.16);
+    --text:#EDF1F5;
+    --text-muted:#8A96A5;
+    --text-faint:#5A6472;
+    --amber:#F2A63D;
+    --amber-dim:#8A6323;
+    --teal:#33C6A4;
+    --red:#E4573D;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(242,166,61,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 20%, rgba(51,198,164,0.06), transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:80px;
+  }
+  /* faint circuit grid */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 34px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 34px);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ---- signature: power line ---- */
+  .power-line{
+    position:relative;
+    height:3px;
+    width:100%;
+    background:linear-gradient(90deg, transparent, rgba(242,166,61,0.5), transparent);
+    background-size:200% 100%;
+    animation:pulse-travel 3.2s linear infinite;
+    overflow:visible;
+  }
+  .power-line::after{
+    content:"";
+    position:absolute; top:50%; left:0;
+    width:10px;height:10px;
+    background:var(--amber);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    box-shadow:0 0 14px 3px rgba(242,166,61,0.9);
+    animation:node-travel 3.2s linear infinite;
+  }
+  @keyframes pulse-travel{
+    0%{background-position:200% 0;}
+    100%{background-position:-200% 0;}
+  }
+  @keyframes node-travel{
+    0%{left:-2%;}
+    100%{left:102%;}
+  }
+  .power-line.charging{
+    animation-duration:0.5s;
+    background:linear-gradient(90deg, transparent, rgba(242,166,61,0.95), transparent);
+  }
+  .power-line.charging::after{
+    animation-duration:0.5s;
+    box-shadow:0 0 26px 8px rgba(242,166,61,1);
+  }
+
+  .wrap{
+    position:relative; z-index:1;
+    max-width:520px;
+    margin:0 auto;
+    padding:28px 18px 0;
+  }
+
+  .eyebrow{
+    display:flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px; letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin:20px 0 6px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px 2px rgba(242,166,61,0.8);}
+
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:28px;
+    line-height:1.15;
+    margin:0 0 6px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    color:var(--text-muted);
+    font-size:14px;
+    line-height:1.5;
+    margin:0 0 26px;
+  }
+
+  .card{
+    background:linear-gradient(180deg, var(--surface), var(--surface) 60%, var(--surface-2));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:14px;
+  }
+
+  .row-2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    margin-bottom:8px;
+  }
+  input[type=text], textarea{
+    width:100%;
+    background:var(--bg-2);
+    border:1px solid var(--border-strong);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    padding:12px 13px;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus, textarea:focus{
+    border-color:var(--amber);
+    box-shadow:0 0 0 3px rgba(242,166,61,0.15);
+  }
+  textarea{resize:vertical; min-height:70px; font-size:14px; line-height:1.5;}
+
+  .section-title{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:4px;
+  }
+  .section-title .name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:15.5px;
+  }
+  .section-title .max{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-faint);
+  }
+  .hint{
+    font-size:12.5px;
+    color:var(--text-muted);
+    line-height:1.5;
+    margin:2px 0 14px;
+  }
+
+  .score-control{
+    display:flex; align-items:center; gap:12px;
+  }
+  .stepper-btn{
+    width:38px; height:38px; flex:0 0 auto;
+    border-radius:10px;
+    border:1px solid var(--border-strong);
+    background:var(--bg-2);
+    color:var(--text);
+    font-size:18px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    user-select:none;
+    transition:background .12s, border-color .12s, transform .08s;
+  }
+  .stepper-btn:active{transform:scale(0.92); background:var(--surface-2);}
+  .stepper-btn:hover{border-color:var(--amber);}
+
+  .score-track{
+    flex:1;
+    position:relative;
+  }
+  input[type=range]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:100%;
+    height:8px;
+    border-radius:6px;
+    background:var(--bg-2);
+    outline:none;
+    margin:0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--amber);
+    border:3px solid #0A0D12;
+    box-shadow:0 0 0 1px var(--amber), 0 0 10px rgba(242,166,61,0.6);
+    cursor:pointer;
+    margin-top:-6px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--amber);
+    border:3px solid #0A0D12;
+    box-shadow:0 0 0 1px var(--amber), 0 0 10px rgba(242,166,61,0.6);
+    cursor:pointer;
+  }
+  .score-fill-label{
+    display:flex; justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--text-faint);
+    margin-top:6px;
+  }
+
+  .score-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:20px;
+    min-width:44px;
+    text-align:center;
+    color:var(--amber);
+    flex:0 0 auto;
+  }
+
+  /* total gauge */
+  .total-card{
+    position:sticky;
+    bottom:14px;
+    z-index:3;
+    background:linear-gradient(135deg, #171F27, #10151C);
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius);
+    padding:16px 16px 14px;
+    box-shadow:0 12px 32px -8px rgba(0,0,0,0.6);
+  }
+  .total-top{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:10px;
+  }
+  .total-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+  }
+  .total-number{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:26px;
+  }
+  .total-number span{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--text-faint);
+    font-weight:500;
+  }
+  .gauge{
+    height:10px;
+    border-radius:6px;
+    background:var(--bg-2);
+    overflow:hidden;
+    position:relative;
+    margin-bottom:14px;
+  }
+  .gauge-fill{
+    height:100%;
+    width:0%;
+    border-radius:6px;
+    background:linear-gradient(90deg, var(--teal), var(--amber));
+    transition:width .35s cubic-bezier(.3,1,.4,1);
+  }
+
+  button.submit{
+    width:100%;
+    border:none;
+    border-radius:10px;
+    padding:15px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:15.5px;
+    background:var(--amber);
+    color:#1A1204;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .1s, box-shadow .15s, background .15s;
+    box-shadow:0 6px 20px -6px rgba(242,166,61,0.5);
+  }
+  button.submit:active{transform:scale(0.98);}
+  button.submit:disabled{opacity:0.55; cursor:default;}
+  button.submit .bolt{transition:transform .2s;}
+  button.submit.sending .bolt{animation:flicker .4s infinite;}
+  @keyframes flicker{
+    0%,100%{opacity:1;} 50%{opacity:0.35;}
+  }
+
+  .toast{
+    position:fixed;
+    top:14px; left:50%;
+    transform:translateX(-50%) translateY(-140%);
+    background:var(--surface-2);
+    border:1px solid var(--amber);
+    color:var(--text);
+    font-size:13.5px;
+    font-weight:500;
+    padding:12px 18px;
+    border-radius:10px;
+    z-index:10;
+    box-shadow:0 10px 30px -6px rgba(0,0,0,0.6), 0 0 0 1px rgba(242,166,61,0.15);
+    transition:transform .35s cubic-bezier(.3,1.2,.4,1);
+    display:flex; align-items:center; gap:8px;
+    max-width:90vw;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.error{border-color:var(--red);}
+
+  .footer-note{
+    text-align:center;
+    color:var(--text-faint);
+    font-size:11.5px;
+    padding:22px 10px 10px;
+    line-height:1.6;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .power-line, .power-line::after{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="power-line" id="powerLine"></div>
+
+<div class="wrap">
+  <div class="eyebrow"><span class="dot"></span> HUMANISING ENERGY · KAHRAMANMARAŞ</div>
+  <h1>Jüri Değerlendirme Formu</h1>
+  <p class="sub">Takımı seçin, beş başlığı puanlayın. Puanınız kaydedildiği anda şebekeye iletilir.</p>
+
+  <div class="card">
+    <div class="row-2">
+      <div>
+        <label for="judge">Jüri Adı</label>
+        <input type="text" id="judge" placeholder="Adınız" autocomplete="off">
+      </div>
+      <div>
+        <label for="team">Takım</label>
+        <input type="text" id="team" placeholder="Takım-1" autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+  <!-- A -->
+  <div class="card">
+    <div class="section-title"><span class="name">A · Problem &amp; Humanising Energy Odağı</span><span class="max">/15</span></div>
+    <p class="hint">Kök neden doğru mu tanımlanmış? Energy Access, Affordability, Equity &amp; Justice, Quality of Life boyutları düşünülmüş mü?</p>
+    <div class="score-control">
+      <div class="stepper-btn" data-action="dec" data-target="A">–</div>
+      <div class="score-track">
+        <input type="range" id="A" min="0" max="15" value="0" step="1">
+      </div>
+      <div class="stepper-btn" data-action="inc" data-target="A">+</div>
+      <div class="score-value" id="A_val">0</div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="card">
+    <div class="section-title"><span class="name">B · Teknik Çözüm Kalitesi</span><span class="max">/25</span></div>
+    <p class="hint">Üretim, şebeke, talep, depolama, dağıtım, güvenilirlik ve maliyet birbirine tutarlı bağlanmış mı?</p>
+    <div class="score-control">
+      <div class="stepper-btn" data-action="dec" data-target="B">–</div>
+      <div class="score-track">
+        <input type="range" id="B" min="0" max="25" value="0" step="1">
+      </div>
+      <div class="stepper-btn" data-action="inc" data-target="B">+</div>
+      <div class="score-value" id="B_val">0</div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="card">
+    <div class="section-title"><span class="name">C · Uygulanabilirlik &amp; Risk</span><span class="max">/20</span></div>
+    <p class="hint">Pilot yapılabilir mi? Regülasyon, yatırım, işletme, bakım, paydaş kabulü ve kriz senaryoları düşünülmüş mü?</p>
+    <div class="score-control">
+      <div class="stepper-btn" data-action="dec" data-target="C">–</div>
+      <div class="score-track">
+        <input type="range" id="C" min="0" max="20" value="0" step="1">
+      </div>
+      <div class="stepper-btn" data-action="inc" data-target="C">+</div>
+      <div class="score-value" id="C_val">0</div>
+    </div>
+  </div>
+
+  <!-- D -->
+  <div class="card">
+    <div class="section-title"><span class="name">D · AI Agent Bileşeni</span><span class="max">/25</span></div>
+    <p class="hint">Agent dokümanlara dayanıyor mu, kaynak gösterebiliyor mu? Sınırlarını biliyor ve gerektiğinde insana devrediyor mu?</p>
+    <div class="score-control">
+      <div class="stepper-btn" data-action="dec" data-target="D">–</div>
+      <div class="score-track">
+        <input type="range" id="D" min="0" max="25" value="0" step="1">
+      </div>
+      <div class="stepper-btn" data-action="inc" data-target="D">+</div>
+      <div class="score-value" id="D_val">0</div>
+    </div>
+  </div>
+
+  <!-- E -->
+  <div class="card">
+    <div class="section-title"><span class="name">E · Sunum &amp; Q&amp;A</span><span class="max">/15</span></div>
+    <p class="hint">Anlatım net mi? Varsayımlar savunulabiliyor, sorulara derinlikli ve tutarlı cevap veriliyor mu?</p>
+    <div class="score-control">
+      <div class="stepper-btn" data-action="dec" data-target="E">–</div>
+      <div class="score-track">
+        <input type="range" id="E" min="0" max="15" value="0" step="1">
+      </div>
+      <div class="stepper-btn" data-action="inc" data-target="E">+</div>
+      <div class="score-value" id="E_val">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label for="note">Kanıt Notu / Kırmızı Bayrak</label>
+    <textarea id="note" placeholder="En zayıf varsayım, risk veya öne çıkan güçlü nokta..."></textarea>
+  </div>
+
+  <div class="total-card">
+    <div class="total-top">
+      <span class="total-label">Toplam Puan</span>
+      <span class="total-number" id="totalNum">0<span>/100</span></span>
+    </div>
+    <div class="gauge"><div class="gauge-fill" id="gaugeFill"></div></div>
+    <button class="submit" id="submitBtn">
+      <span class="bolt">⚡</span> <span id="submitText">Puanı Gönder</span>
+    </button>
+  </div>
+
+  <p class="footer-note">Gönderilen her puan zaman damgası, jüri adı ve takım bilgisiyle birlikte kaydedilir.<br>Bir kez gönderdikten sonra aynı takım için tekrar oy verebilirsiniz — son gönderim ayrı bir kayıt olarak eklenir.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ====== BURAYI GOOGLE APPS SCRIPT WEB APP URL'İ İLE DEĞİŞTİRİN ======
+  const SCRIPT_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+  // =====================================================================
+
+  const maxes = { A:15, B:25, C:20, D:25, E:15 };
+  const ids = Object.keys(maxes);
+
+  function updateTotal(){
+    let total = 0;
+    ids.forEach(id=>{
+      const v = parseInt(document.getElementById(id).value,10);
+      document.getElementById(id+'_val').textContent = v;
+      total += v;
+    });
+    document.getElementById('totalNum').innerHTML = total + '<span>/100</span>';
+    document.getElementById('gaugeFill').style.width = total + '%';
+  }
+
+  ids.forEach(id=>{
+    document.getElementById(id).addEventListener('input', updateTotal);
+  });
+
+  document.querySelectorAll('.stepper-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const target = btn.dataset.target;
+      const input = document.getElementById(target);
+      const max = maxes[target];
+      let v = parseInt(input.value,10);
+      v += (btn.dataset.action === 'inc') ? 1 : -1;
+      v = Math.max(0, Math.min(max, v));
+      input.value = v;
+      updateTotal();
+    });
+  });
+
+  function showToast(msg, isError){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 3200);
+  }
+
+  const submitBtn = document.getElementById('submitBtn');
+  const submitText = document.getElementById('submitText');
+  const powerLine = document.getElementById('powerLine');
+
+  submitBtn.addEventListener('click', async ()=>{
+    const judge = document.getElementById('judge').value.trim();
+    const team = document.getElementById('team').value.trim();
+
+    if(!judge){ showToast('Lütfen jüri adınızı girin.', true); return; }
+    if(!team){ showToast('Lütfen takım adını girin (örn. Takım-1).', true); return; }
+
+    const payload = {
+      timestamp: new Date().toISOString(),
+      judge, team,
+      A: +document.getElementById('A').value,
+      B: +document.getElementById('B').value,
+      C: +document.getElementById('C').value,
+      D: +document.getElementById('D').value,
+      E: +document.getElementById('E').value,
+      total: +document.getElementById('totalNum').textContent.split('/')[0],
+      note: document.getElementById('note').value.trim()
+    };
+
+    if(SCRIPT_URL.includes('PASTE_YOUR')){
+      showToast('Önce SCRIPT_URL ayarlanmalı (bkz. README).', true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.classList.add('sending');
+    submitText.textContent = 'Gönderiliyor...';
+    powerLine.classList.add('charging');
+
+    try{
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(payload)
+      });
+      showToast('⚡ Puan kaydedildi — ' + team);
+      // reset scores for next team, keep judge name
+      ids.forEach(id=>{ document.getElementById(id).value = 0; });
+      document.getElementById('team').value = '';
+      document.getElementById('note').value = '';
+      updateTotal();
+    }catch(err){
+      showToast('Gönderilemedi, bağlantınızı kontrol edin.', true);
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('sending');
+      submitText.textContent = 'Puanı Gönder';
+      setTimeout(()=>powerLine.classList.remove('charging'), 500);
+    }
+  });
+
+  updateTotal();
+</script>
+
+</body>
+</html>

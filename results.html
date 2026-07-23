@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sonuçlar · Humanising Energy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0D12; --surface:#131A22; --surface-2:#1A222C;
+    --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
+    --text:#EDF1F5; --text-muted:#8A96A5; --text-faint:#5A6472;
+    --amber:#F2A63D; --teal:#33C6A4; --red:#E4573D; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(242,166,61,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 20%, rgba(51,198,164,0.06), transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  .power-line{
+    height:3px; width:100%;
+    background:linear-gradient(90deg, transparent, rgba(242,166,61,0.5), transparent);
+    background-size:200% 100%;
+    animation:pulse-travel 3.2s linear infinite;
+  }
+  @keyframes pulse-travel{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+  .wrap{max-width:640px;margin:0 auto;padding:28px 18px;}
+  .eyebrow{
+    display:flex;align-items:center;gap:8px;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--amber);margin:20px 0 6px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px 2px rgba(242,166,61,0.8);}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:26px;margin:0 0 6px;font-weight:700;}
+  .sub{color:var(--text-muted);font-size:13.5px;margin:0 0 22px;line-height:1.5;}
+
+  .refresh-row{display:flex;gap:10px;align-items:center;margin-bottom:18px;}
+  .refresh-btn{
+    background:var(--surface-2);border:1px solid var(--border-strong);color:var(--text);
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+    padding:9px 14px;border-radius:8px;cursor:pointer;
+  }
+  .status{font-size:12px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;}
+
+  .team-card{
+    background:linear-gradient(180deg, var(--surface), var(--surface-2));
+    border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;margin-bottom:12px;
+  }
+  .team-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .team-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;}
+  .team-avg{font-family:'IBM Plex Mono',monospace;color:var(--amber);font-size:19px;font-weight:600;}
+  .team-avg span{color:var(--text-faint);font-size:12px;}
+  .team-meta{font-size:11.5px;color:var(--text-faint);margin-bottom:10px;font-family:'IBM Plex Mono',monospace;}
+
+  .gauge{height:8px;border-radius:6px;background:#0D131A;overflow:hidden;margin-bottom:12px;}
+  .gauge-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--teal),var(--amber));transition:width .4s;}
+
+  .breakdown{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+  .b-item{text-align:center;}
+  .b-label{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.04em;}
+  .b-val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--text);margin-top:2px;}
+
+  .votes-toggle{
+    margin-top:10px;font-size:12px;color:var(--teal);cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .votes-list{display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;}
+  .votes-list.show{display:block;}
+  .vote-row{
+    display:flex;justify-content:space-between;font-size:12.5px;
+    color:var(--text-muted);padding:4px 0;
+  }
+  .vote-row b{color:var(--text);}
+
+  .empty{
+    text-align:center;color:var(--text-faint);padding:60px 20px;font-size:13.5px;line-height:1.7;
+  }
+  a.back{color:var(--amber);text-decoration:none;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="power-line"></div>
+<div class="wrap">
+  <div class="eyebrow"><span class="dot"></span> HUMANISING ENERGY · KAHRAMANMARAŞ</div>
+  <h1>Canlı Sonuç Tablosu</h1>
+  <p class="sub">Tüm jürilerin gönderdiği puanların takım bazında ortalaması. <a class="back" href="index.html">← Oylama formuna dön</a></p>
+
+  <div class="refresh-row">
+    <button class="refresh-btn" onclick="load()">↻ Yenile</button>
+    <span class="status" id="status">yükleniyor…</span>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script>
+  const SCRIPT_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+  function fmt(n){ return Math.round(n*10)/10; }
+
+  async function load(){
+    const status = document.getElementById('status');
+    const list = document.getElementById('list');
+    status.textContent = 'yükleniyor…';
+
+    if(SCRIPT_URL.includes('PASTE_YOUR')){
+      list.innerHTML = '<div class="empty">SCRIPT_URL henüz ayarlanmadı.<br>README.md dosyasındaki kurulum adımlarını izleyin.</div>';
+      status.textContent = '';
+      return;
+    }
+
+    try{
+      const res = await fetch(SCRIPT_URL);
+      const rows = await res.json();
+
+      if(!rows.length){
+        list.innerHTML = '<div class="empty">Henüz gönderilmiş puan yok.</div>';
+        status.textContent = 'kayıt yok';
+        return;
+      }
+
+      const teams = {};
+      rows.forEach(r=>{
+        if(!teams[r.team]) teams[r.team] = [];
+        teams[r.team].push(r);
+      });
+
+      const teamList = Object.entries(teams).map(([team, votes])=>{
+        const n = votes.length;
+        const avg = k => votes.reduce((s,v)=>s+v[k],0)/n;
+        return {
+          team, n,
+          A: avg('A'), B: avg('B'), C: avg('C'), D: avg('D'), E: avg('E'),
+          total: avg('total'),
+          votes
+        };
+      }).sort((a,b)=> b.total - a.total);
+
+      list.innerHTML = teamList.map((t,i)=>`
+        <div class="team-card">
+          <div class="team-top">
+            <span class="team-name">#${i+1} · ${escapeHtml(t.team)}</span>
+            <span class="team-avg">${fmt(t.total)}<span>/100</span></span>
+          </div>
+          <div class="team-meta">${t.n} jüri oyu</div>
+          <div class="gauge"><div class="gauge-fill" style="width:${t.total}%"></div></div>
+          <div class="breakdown">
+            <div class="b-item"><div class="b-label">A/15</div><div class="b-val">${fmt(t.A)}</div></div>
+            <div class="b-item"><div class="b-label">B/25</div><div class="b-val">${fmt(t.B)}</div></div>
+            <div class="b-item"><div class="b-label">C/20</div><div class="b-val">${fmt(t.C)}</div></div>
+            <div class="b-item"><div class="b-label">D/25</div><div class="b-val">${fmt(t.D)}</div></div>
+            <div class="b-item"><div class="b-label">E/15</div><div class="b-val">${fmt(t.E)}</div></div>
+          </div>
+          <div class="votes-toggle" onclick="this.nextElementSibling.classList.toggle('show')">jüri notlarını göster ▾</div>
+          <div class="votes-list">
+            ${t.votes.map(v=>`
+              <div class="vote-row"><b>${escapeHtml(v.judge||'—')}</b><span>${v.total}/100</span></div>
+              ${v.note ? `<div class="vote-row" style="color:#8A96A5;font-style:italic;">"${escapeHtml(v.note)}"</div>` : ''}
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      status.textContent = rows.length + ' oy · ' + teamList.length + ' takım';
+    }catch(err){
+      list.innerHTML = '<div class="empty">Sonuçlar yüklenemedi. Bağlantınızı kontrol edin.</div>';
+      status.textContent = 'hata';
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  load();
+</script>
+</body>
+</html>
